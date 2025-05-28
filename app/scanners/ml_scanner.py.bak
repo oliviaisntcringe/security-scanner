@@ -1,0 +1,481 @@
+import numpy as np
+import asyncio
+import aiohttp
+from bs4 import BeautifulSoup
+import re
+import pickle
+import os
+import traceback
+import time
+import random
+from ..utils.helpers import LOG
+from ..config import ML_MODELS_PATH, ML_CONFIDENCE_THRESHOLD, ML_DEBUG, RETRY_COUNT, RETRY_DELAY, ML_MIN_FEATURES
+
+class MLScanner:
+    """Advanced scanner that uses machine learning to detect vulnerabilities"""
+    
+    def __init__(self):
+        self.models = {}
+        self.features = {}
+        self.scalers = {}  # Added scalers
+        self.load_models()
+        self.visited_urls = set()
+        self.session = None
+        self.debug_info = {}
+        
+    async def __aenter__(self):
+        """Async context manager entry"""
+        return self
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        """Async context manager exit"""
+        await self.cleanup()
+
+    async def init_session(self):
+        """Initialize aiohttp session if not exists"""
+        if not self.session or self.session.closed:
+            self.session = aiohttp.ClientSession(
+                connector=aiohttp.TCPConnector(ssl=False),
+                timeout=aiohttp.ClientTimeout(total=30)
+            )
+
+    async def cleanup(self):
+        """Cleanup resources"""
+        if self.session and not self.session.closed:
+            await self.session.close()
+            self.session = None
+
+    def load_models(self):
+        """Load trained ML models and scalers for vulnerability detection"""
+        model_types = ['xss', 'sqli', 'csrf', 'ssrf', 'lfi', 'rce']
+        
+        if not os.path.exists(ML_MODELS_PATH):
+            os.makedirs(ML_MODELS_PATH)
+            LOG("[!] ML models directory created")
+            return
+            
+        for model_type in model_types:
+            try:
+                # Load model
+                model_path = os.path.join(ML_MODELS_PATH, f"{model_type}_model.pkl")
+                features_path = os.path.join(ML_MODELS_PATH, f"{model_type}_features.pkl")
+                scaler_path = os.path.join(ML_MODELS_PATH, f"{model_type}_scaler.pkl")
+                
+                if all(os.path.exists(p) for p in [model_path, features_path, scaler_path]):
+                    with open(model_path, 'rb') as f:
+                        self.models[model_type] = pickle.load(f)
+                    with open(features_path, 'rb') as f:
+                        self.features[model_type] = pickle.load(f)
+                    with open(scaler_path, 'rb') as f:
+                        self.scalers[model_type] = pickle.load(f)
+                    LOG(f"[*] Loaded ML model, features, and scaler for {model_type}")
+                else:
+                    LOG(f"[!] Missing model files for {model_type}")
+            except Exception as e:
+                LOG(f"[!] Error loading model for {model_type}: {e}")
+                if ML_DEBUG:
+                    LOG(f"[!] Stack trace: {traceback.format_exc()}")
+
+    async def crawl(self, url):
+        """Crawl website and discover endpoints"""
+        self.visited_urls.add(url)
+        try:
+            # Use a local session instead of self.session
+            connector = aiohttp.TCPConnector(ssl=False)
+            timeout = aiohttp.ClientTimeout(total=30)
+            async with aiohttp.ClientSession(connector=connector, timeout=timeout) as session:
+                async with session.get(url, timeout=30, verify_ssl=False) as response:
+                    if response.status == 200:
+                        html = await response.text()
+                        soup = BeautifulSoup(html, 'html.parser')
+                        
+                        # Extract all links
+                        for a_tag in soup.find_all('a', href=True):
+                            href = a_tag['href']
+                            if href.startswith('http'):
+                                if self._is_same_domain(url, href):
+                                    self.visited_urls.add(href)
+                            elif href.startswith('/'):
+                                base_url = self._get_base_url(url)
+                                full_url = f"{base_url}{href}"
+                                self.visited_urls.add(full_url)
+                        
+                        # Extract all forms and inputs
+                        for form in soup.find_all('form'):
+                            action = form.get('action', '')
+                            if action.startswith('http'):
+                                if self._is_same_domain(url, action):
+                                    self.visited_urls.add(action)
+                            elif action.startswith('/') or action == '':
+                                base_url = self._get_base_url(url)
+                                if action == '':
+                                    full_url = url
+                                else:
+                                    full_url = f"{base_url}{action}"
+                                self.visited_urls.add(full_url)
+                        
+                        LOG(f"[*] ML Scanner crawled: {url}, found {len(self.visited_urls)} URLs")
+        except Exception as e:
+            LOG(f"[!] ML Scanner crawl error on {url}: {e}")
+    
+    def _is_same_domain(self, url1, url2):
+        """Check if two URLs belong to the same domain"""
+        domain1 = url1.split('/')[2] if len(url1.split('/')) > 2 else ''
+        domain2 = url2.split('/')[2] if len(url2.split('/')) > 2 else ''
+        return domain1 == domain2
+    
+    def _get_base_url(self, url):
+        """Extract base URL (protocol + domain)"""
+        parts = url.split('/')
+        if len(parts) >= 3:
+            return f"{parts[0]}//{parts[2]}"
+        return url
+    
+    async def extract_features(self, url, vulnerability_type):
+        """Extract features with improved error handling and retries"""
+        max_retries = RETRY_COUNT if 'RETRY_COUNT' in globals() else 3
+        retry_count = 0
+        
+        while retry_count < max_retries:
+            try:
+                # Create a new session for each attempt instead of using self.session
+                connector = aiohttp.TCPConnector(ssl=False)
+                timeout = aiohttp.ClientTimeout(total=30)
+                async with aiohttp.ClientSession(connector=connector, timeout=timeout) as session:
+                    async with session.get(url, timeout=30, verify_ssl=False) as response:
+                        if response.status == 200:
+                            html = await response.text()
+                            soup = BeautifulSoup(html, 'html.parser')
+                            
+                            # Common features for all vulnerability types
+                            feature_vector = [
+                                len(html),  # Total HTML length
+                                len(re.findall(r'<input', html, re.IGNORECASE)),  # Number of input fields
+                                len(re.findall(r'<form', html, re.IGNORECASE)),  # Number of forms
+                                len(re.findall(r'javascript:', html, re.IGNORECASE)),  # JavaScript protocol usage
+                                len(soup.find_all('script')),  # Number of script tags
+                                len(soup.find_all('iframe')),  # Number of iframes
+                                len(soup.find_all('a', href=True)),  # Number of links
+                                len(soup.find_all('meta')),  # Number of meta tags
+                                len(soup.find_all('link')),  # Number of link tags
+                                len(re.findall(r'function\s*\(', html))  # Number of JavaScript functions
+                            ]
+                            
+                            # Vulnerability specific features
+                            if vulnerability_type == 'xss':
+                                feature_vector.extend([
+                                    # Event handlers
+                                    len(re.findall(r'onerror', html, re.IGNORECASE)),
+                                    len(re.findall(r'onload', html, re.IGNORECASE)),
+                                    len(re.findall(r'onclick', html, re.IGNORECASE)),
+                                    len(re.findall(r'onmouseover', html, re.IGNORECASE)),
+                                    len(re.findall(r'onmouseout', html, re.IGNORECASE)),
+                                    len(re.findall(r'onkeyup', html, re.IGNORECASE)),
+                                    len(re.findall(r'onkeydown', html, re.IGNORECASE)),
+                                    len(re.findall(r'onsubmit', html, re.IGNORECASE)),
+                                    len(re.findall(r'onchange', html, re.IGNORECASE)),
+                                    len(re.findall(r'onfocus', html, re.IGNORECASE)),
+                                    
+                                    # JavaScript functions
+                                    len(re.findall(r'eval\(', html, re.IGNORECASE)),
+                                    len(re.findall(r'setTimeout\(', html, re.IGNORECASE)),
+                                    len(re.findall(r'setInterval\(', html, re.IGNORECASE)),
+                                    len(re.findall(r'document\.write\(', html, re.IGNORECASE)),
+                                    len(re.findall(r'\.innerHTML', html, re.IGNORECASE)),
+                                    len(re.findall(r'\.outerHTML', html, re.IGNORECASE)),
+                                    len(re.findall(r'\.insertAdjacentHTML', html, re.IGNORECASE)),
+                                    len(re.findall(r'\.execScript', html, re.IGNORECASE)),
+                                    len(re.findall(r'new\s+Function', html, re.IGNORECASE)),
+                                    len(re.findall(r'window\[', html, re.IGNORECASE)),
+                                    
+                                    # DOM manipulation
+                                    len(re.findall(r'document\.createElement', html, re.IGNORECASE)),
+                                    len(re.findall(r'document\.appendChild', html, re.IGNORECASE)),
+                                    len(re.findall(r'document\.replaceChild', html, re.IGNORECASE)),
+                                    len(re.findall(r'document\.getElementById', html, re.IGNORECASE)),
+                                    len(re.findall(r'document\.querySelector', html, re.IGNORECASE)),
+                                    len(re.findall(r'\.setAttribute', html, re.IGNORECASE)),
+                                    len(re.findall(r'\.getAttribute', html, re.IGNORECASE)),
+                                    len(re.findall(r'\.removeAttribute', html, re.IGNORECASE)),
+                                    len(re.findall(r'\.dataset', html, re.IGNORECASE)),
+                                    len(re.findall(r'\.style', html, re.IGNORECASE))
+                                ])
+                                
+                            elif vulnerability_type == 'sqli':
+                                feature_vector.extend([
+                                    # URL parameters
+                                    len(re.findall(r'id=\d+', url, re.IGNORECASE)),
+                                    len(re.findall(r'user=', url, re.IGNORECASE)),
+                                    len(re.findall(r'pass=', url, re.IGNORECASE)),
+                                    len(re.findall(r'category=', url, re.IGNORECASE)),
+                                    len(re.findall(r'search=', url, re.IGNORECASE)),
+                                    
+                                    # SQL keywords
+                                    len(re.findall(r'select\s+.*\s+from', html, re.IGNORECASE)),
+                                    len(re.findall(r'insert\s+into', html, re.IGNORECASE)),
+                                    len(re.findall(r'update\s+.*\s+set', html, re.IGNORECASE)),
+                                    len(re.findall(r'delete\s+from', html, re.IGNORECASE)),
+                                    len(re.findall(r'drop\s+table', html, re.IGNORECASE)),
+                                    len(re.findall(r'union\s+select', html, re.IGNORECASE)),
+                                    len(re.findall(r'where\s+.*=', html, re.IGNORECASE)),
+                                    len(re.findall(r'order\s+by', html, re.IGNORECASE)),
+                                    len(re.findall(r'group\s+by', html, re.IGNORECASE)),
+                                    len(re.findall(r'having', html, re.IGNORECASE)),
+                                    
+                                    # Database identifiers
+                                    len(re.findall(r'mysql', html, re.IGNORECASE)),
+                                    len(re.findall(r'postgresql', html, re.IGNORECASE)),
+                                    len(re.findall(r'sqlite', html, re.IGNORECASE)),
+                                    len(re.findall(r'oracle', html, re.IGNORECASE)),
+                                    len(re.findall(r'mssql', html, re.IGNORECASE)),
+                                    
+                                    # Error messages
+                                    len(re.findall(r'sql\s+error', html, re.IGNORECASE)),
+                                    len(re.findall(r'database\s+error', html, re.IGNORECASE)),
+                                    len(re.findall(r'syntax\s+error', html, re.IGNORECASE)),
+                                    len(re.findall(r'ORA-\d{5}', html)),  # Oracle errors
+                                    len(re.findall(r'mysql_error', html, re.IGNORECASE))
+                                ])
+                                
+                            elif vulnerability_type == 'csrf':
+                                forms = soup.find_all('form')
+                                feature_vector.extend([
+                                    # Form analysis
+                                    len([f for f in forms if not f.find('input', {'name': re.compile('csrf|token', re.I)})]),
+                                    len([f for f in forms if f.get('method', '').lower() == 'post']),
+                                    len([f for f in forms if 'action' in f.attrs]),
+                                    len([f for f in forms if not f.get('action')]),
+                                    len(soup.find_all('input', {'type': 'hidden'})),
+                                    
+                                    # Security headers
+                                    1 if 'csrf' in str(soup.find_all('meta')).lower() else 0,
+                                    1 if 'x-csrf-token' in str(soup.find_all('meta')).lower() else 0,
+                                    1 if 'content-security-policy' in str(soup.find_all('meta')).lower() else 0,
+                                    1 if 'x-frame-options' in str(soup.find_all('meta')).lower() else 0,
+                                    1 if 'same-origin' in str(soup.find_all('meta')).lower() else 0,
+                                    
+                                    # JavaScript security
+                                    len(re.findall(r'XMLHttpRequest', html, re.IGNORECASE)),
+                                    len(re.findall(r'fetch\(', html, re.IGNORECASE)),
+                                    len(re.findall(r'ajax\(', html, re.IGNORECASE)),
+                                    len(re.findall(r'headers:\s*{[^}]*csrf', html, re.IGNORECASE)),
+                                    len(re.findall(r'credentials:\s*[\'"]include[\'"]', html, re.IGNORECASE)),
+                                    
+                                    # Form fields
+                                    len(soup.find_all('input', {'type': 'password'})),
+                                    len(soup.find_all('input', {'type': 'email'})),
+                                    len(soup.find_all('input', {'type': 'file'})),
+                                    len(soup.find_all('input', {'type': 'submit'})),
+                                    len(re.findall(r'user|username|email', html, re.IGNORECASE))
+                                ])
+                                
+                            elif vulnerability_type == 'ssrf':
+                                feature_vector.extend([
+                                    # URL parameters
+                                    len(re.findall(r'url=', url, re.IGNORECASE)),
+                                    len(re.findall(r'path=', url, re.IGNORECASE)),
+                                    len(re.findall(r'file=', url, re.IGNORECASE)),
+                                    len(re.findall(r'source=', url, re.IGNORECASE)),
+                                    len(re.findall(r'dest=', url, re.IGNORECASE)),
+                                    
+                                    # Protocol handlers
+                                    len(re.findall(r'http[s]?://', html)),
+                                    len(re.findall(r'ftp://', html)),
+                                    len(re.findall(r'file://', html)),
+                                    len(re.findall(r'php://', html)),
+                                    len(re.findall(r'data://', html)),
+                                    
+                                    # Network functions
+                                    len(re.findall(r'curl_exec', html, re.IGNORECASE)),
+                                    len(re.findall(r'file_get_contents', html, re.IGNORECASE)),
+                                    len(re.findall(r'fsockopen', html, re.IGNORECASE)),
+                                    len(re.findall(r'pfsockopen', html, re.IGNORECASE)),
+                                    len(re.findall(r'stream_context_create', html, re.IGNORECASE)),
+                                    
+                                    # Common targets
+                                    len(re.findall(r'localhost|127\.0\.0\.1', html)),
+                                    len(re.findall(r'0\.0\.0\.0', html)),
+                                    len(re.findall(r'10\.\d{1,3}\.\d{1,3}\.\d{1,3}', html)),
+                                    len(re.findall(r'172\.(1[6-9]|2\d|3[0-1])\.\d{1,3}\.\d{1,3}', html)),
+                                    len(re.findall(r'192\.168\.\d{1,3}\.\d{1,3}', html)),
+                                    
+                                    # Request headers
+                                    len(re.findall(r'X-Forwarded-For', html, re.IGNORECASE)),
+                                    len(re.findall(r'X-Real-IP', html, re.IGNORECASE)),
+                                    len(re.findall(r'X-Client-IP', html, re.IGNORECASE)),
+                                    len(re.findall(r'X-Remote-IP', html, re.IGNORECASE)),
+                                    len(re.findall(r'X-Originating-IP', html, re.IGNORECASE))
+                                ])
+                                
+                            elif vulnerability_type == 'lfi':
+                                feature_vector.extend([
+                                    # File inclusion patterns
+                                    len(re.findall(r'include\s*\(', html, re.IGNORECASE)),
+                                    len(re.findall(r'require\s*\(', html, re.IGNORECASE)),
+                                    len(re.findall(r'include_once\s*\(', html, re.IGNORECASE)),
+                                    len(re.findall(r'require_once\s*\(', html, re.IGNORECASE)),
+                                    len(re.findall(r'fopen\s*\(', html, re.IGNORECASE)),
+                                    
+                                    # Path traversal
+                                    len(re.findall(r'\.\./', url)),
+                                    len(re.findall(r'\.\.\\', url)),
+                                    len(re.findall(r'%2e%2e%2f', url, re.IGNORECASE)),
+                                    len(re.findall(r'%252e%252e%252f', url, re.IGNORECASE)),
+                                    len(re.findall(r'\.\.%2f', url, re.IGNORECASE)),
+                                    
+                                    # Common targets
+                                    len(re.findall(r'/etc/passwd', html)),
+                                    len(re.findall(r'/etc/shadow', html)),
+                                    len(re.findall(r'/proc/self/environ', html)),
+                                    len(re.findall(r'wp-config\.php', html)),
+                                    len(re.findall(r'config\.php', html)),
+                                    
+                                    # File operations
+                                    len(re.findall(r'readfile\s*\(', html, re.IGNORECASE)),
+                                    len(re.findall(r'file_get_contents\s*\(', html, re.IGNORECASE)),
+                                    len(re.findall(r'show_source\s*\(', html, re.IGNORECASE)),
+                                    len(re.findall(r'highlight_file\s*\(', html, re.IGNORECASE)),
+                                    len(re.findall(r'include\s*\$_[A-Za-z0-9_]+', html)),
+                                    
+                                    # PHP wrappers
+                                    len(re.findall(r'php://filter', html)),
+                                    len(re.findall(r'php://input', html)),
+                                    len(re.findall(r'phar://', html)),
+                                    len(re.findall(r'zip://', html)),
+                                    len(re.findall(r'data://', html))
+                                ])
+                                
+                            elif vulnerability_type == 'rce':
+                                feature_vector.extend([
+                                    # Command execution functions
+                                    len(re.findall(r'system\s*\(', html, re.IGNORECASE)),
+                                    len(re.findall(r'exec\s*\(', html, re.IGNORECASE)),
+                                    len(re.findall(r'shell_exec\s*\(', html, re.IGNORECASE)),
+                                    len(re.findall(r'passthru\s*\(', html, re.IGNORECASE)),
+                                    len(re.findall(r'eval\s*\(', html, re.IGNORECASE)),
+                                    
+                                    # Shell commands
+                                    len(re.findall(r'`.*`', html)),  # Backticks
+                                    len(re.findall(r'\$\(.*\)', html)),  # Command substitution
+                                    len(re.findall(r'\|\s*sh\s*$', html)),
+                                    len(re.findall(r'\|\s*bash\s*$', html)),
+                                    len(re.findall(r'2>&1', html)),
+                                    
+                                    # Command injection patterns
+                                    len(re.findall(r';\s*\w+\s*;', html)),
+                                    len(re.findall(r'\|\s*\w+', html)),
+                                    len(re.findall(r'>\s*\w+', html)),
+                                    len(re.findall(r'<\s*\w+', html)),
+                                    len(re.findall(r'\$\w+\s*=', html)),
+                                    
+                                    # Suspicious commands
+                                    len(re.findall(r'wget\s+', html, re.IGNORECASE)),
+                                    len(re.findall(r'curl\s+', html, re.IGNORECASE)),
+                                    len(re.findall(r'nc\s+', html, re.IGNORECASE)),
+                                    len(re.findall(r'netcat\s+', html, re.IGNORECASE)),
+                                    len(re.findall(r'ncat\s+', html, re.IGNORECASE)),
+                                    
+                                    # File operations
+                                    len(re.findall(r'>\s*/etc/', html)),
+                                    len(re.findall(r'>\s*/var/', html)),
+                                    len(re.findall(r'>\s*/tmp/', html)),
+                                    len(re.findall(r'>\s*/dev/', html)),
+                                    len(re.findall(r'>\s*/proc/', html)),
+                                    
+                                    # Process operations
+                                    len(re.findall(r'ps\s+aux', html)),
+                                    len(re.findall(r'kill\s+-9', html)),
+                                    len(re.findall(r'pkill', html)),
+                                    len(re.findall(r'killall', html)),
+                                    len(re.findall(r'nohup', html))
+                                ])
+                            
+                            # Convert to numpy array and reshape to 2D
+                            feature_vector = np.array(feature_vector).reshape(1, -1)
+                            
+                            # Scale features
+                            try:
+                                feature_vector = self.scalers[vulnerability_type].transform(feature_vector)
+                                return feature_vector
+                            except Exception as e:
+                                if ML_DEBUG:
+                                    LOG(f"[!] Error scaling features: {e}")
+                                    LOG(f"[!] Features: {feature_vector}")
+                                    LOG(f"[!] Stack trace: {traceback.format_exc()}")
+                                return None
+                                
+                        else:
+                            if ML_DEBUG:
+                                LOG(f"[!] Site not accessible: {url} (Status: {response.status})")
+                            return None
+                            
+            except Exception as e:
+                retry_count += 1
+                if ML_DEBUG:
+                    LOG(f"[!] Error extracting features (attempt {retry_count}/{max_retries}): {e}")
+                    LOG(f"[!] Stack trace: {traceback.format_exc()}")
+                if retry_count == max_retries:
+                    return None
+                # Use exponential backoff with jitter
+                delay = min(2 ** retry_count, 10) + (random.random() * 2)
+                await asyncio.sleep(delay)  # Wait before retrying
+                
+    async def predict_vulnerability(self, url, vulnerability_type):
+        """Predict vulnerability with improved confidence handling"""
+        if vulnerability_type not in self.models:
+            LOG(f"[!] No ML model for {vulnerability_type}")
+            return False
+            
+        features = await self.extract_features(url, vulnerability_type)
+        if features is None:
+            return False
+            
+        try:
+            # Get probability and prediction
+            prediction = self.models[vulnerability_type].predict_proba(features)[0]
+            probability = prediction[1]  # Probability of vulnerable class
+            
+            if ML_DEBUG:
+                LOG(f"[*] {vulnerability_type} prediction for {url}: {probability:.3f}")
+                if probability > ML_CONFIDENCE_THRESHOLD:
+                    LOG(f"[!] Potential {vulnerability_type} vulnerability found!")
+                
+            if probability > ML_CONFIDENCE_THRESHOLD:
+                return {
+                    'type': vulnerability_type,
+                    'url': url,
+                    'confidence': float(probability),
+                    'detected_by': 'machine_learning',
+                    'debug_info': self.debug_info.get(url, {}) if ML_DEBUG else {}
+                }
+            
+            return False
+            
+        except Exception as e:
+            LOG(f"[!] Error predicting {vulnerability_type} for {url}: {e}")
+            if ML_DEBUG:
+                LOG(f"[!] Stack trace: {traceback.format_exc()}")
+            return False
+
+    async def scan_all(self, url):
+        """Scan URL for all vulnerability types with improved handling"""
+        results = []
+        try:
+            # Don't init shared session or call cleanup - let each method create its own session
+            for vuln_type in self.models.keys():
+                if result := await self.predict_vulnerability(url, vuln_type):
+                    results.append(result)
+                    LOG(f"[*] Found {vuln_type} vulnerability in {url} with {result['confidence']:.2f} confidence")
+        except Exception as e:
+            LOG(f"[!] Error in scan_all for {url}: {e}")
+            if ML_DEBUG:
+                LOG(f"[!] Stack trace: {traceback.format_exc()}")
+        # Remove the cleanup call as each method now manages its own sessions
+        return results
+        
+    def __del__(self):
+        """Cleanup resources"""
+        self.models.clear()
+        self.features.clear()
+        self.scalers.clear()
+        self.debug_info.clear() 
