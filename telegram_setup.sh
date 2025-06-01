@@ -7,11 +7,11 @@
 
 # Your Telegram Bot Token - Replace with your actual bot token
 # You can get this from @BotFather on Telegram
-export TELEGRAM_TOKEN="7695047242:AAH_FLMzTJL7cM2_uJCM8nWOTjltfouNx5Q"
+export TELEGRAM_TOKEN=""
 
 # Your Telegram Chat ID - Replace with your actual chat ID
 # You can get this by messaging @userinfobot on Telegram
-export TELEGRAM_CHAT_ID="7168936119"
+export TELEGRAM_CHAT_ID=""
 
 # Display configuration
 echo "Telegram configuration set:"
