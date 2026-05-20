@@ -1,8 +1,17 @@
 # Security Scanner
 
-![Security Status](https://img.shields.io/badge/Security-Advanced-brightgreen)
-![ML Implementation](https://img.shields.io/badge/ML-Implemented-blue)
-![Code Status](https://img.shields.io/badge/Status-Beta-orange)
+<div align="center">
+
+[![Python Badge](https://img.shields.io/badge/Python-3.8%2B-3776ab?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
+[![Security Status](https://img.shields.io/badge/Security-Advanced-brightgreen?style=flat-square)](https://github.com/oliviaisntcringe/security-scanner)
+[![ML Implementation](https://img.shields.io/badge/ML-Implemented-blue?style=flat-square&logo=tensorflow&logoColor=white)](https://github.com/oliviaisntcringe/security-scanner)
+[![Code Status](https://img.shields.io/badge/Status-Beta-orange?style=flat-square)](https://github.com/oliviaisntcringe/security-scanner)
+[![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
+[![Completion](https://img.shields.io/badge/Completion-85%25-blue?style=flat-square)](#project-status-metrics)
+
+A sophisticated security scanning tool combining traditional vulnerability detection with machine learning.
+
+</div>
 
 A sophisticated security scanning tool that combines traditional vulnerability detection techniques with machine learning to identify potential security issues in web applications.
 
@@ -98,7 +107,7 @@ security-scanner/
 └── logs/                    # Application logs
 ```
 
-## 🔮 Future Enhancements
+## ��� Future Enhancements
 
 ### High Priority
 - [ ] Implement more advanced ML feature extraction
@@ -154,4 +163,4 @@ This tool is designed for security professionals to test their own systems or sy
 | Q3 2023 | Enhanced ML models, API development |
 | Q4 2023 | UI improvements, Docker integration |
 | Q1 2024 | Cloud integration, Scheduled scanning |
-| Q2 2024 | Enterprise features, Access control | 
+| Q2 2024 | Enterprise features, Access control |
