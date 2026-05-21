@@ -58,15 +58,15 @@ def severity_of(vuln_type: str) -> str:
 
 def banner() -> None:
     art = r"""
- __   ___   _ _     _   _ ____   ____    _    _   _
- \ \ / / | | | |   | \ | / ___| / ___|  / \  | \ | |
-  \ V /| | | | |   |  \| \___ \| |     / _ \ |  \| |
-   | | | |_| | |___| |\  |___) | |___ / ___ \| |\  |
-   |_|  \___/|_____|_| \_|____/ \____/_/   \_\_| \_|
+    _   ____      _   ____ _   _ _   _ _____
+   / \ |  _ \    / \ / ___| | | | \ | | ____|
+  / _ \| |_) |  / _ \ |   | |_| |  \| |  _|
+ / ___ \  _ <  / ___ \ |___|  _  | |\  | |___
+/_/   \_\_| \_\/_/   \_\____|_| |_|_| \_|_____|
     """
     console.print(Panel(
         Text(art, style="bold cyan", justify="center"),
-        subtitle="[dim]Security Scanner v2.0 — authorized use only[/dim]",
+        subtitle="[dim]ARACHNE v2.0  //  web vulnerability framework  //  authorized use only[/dim]",
         border_style="cyan",
     ))
 

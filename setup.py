@@ -1,9 +1,11 @@
 from setuptools import setup, find_packages
 
 setup(
-    name="vulnscan",
+    name="arachne",
     version="2.0.0",
-    description="Web vulnerability scanner — XSS, SQLi, CSRF, SSRF, LFI, RCE, CORS + ML detection",
+    description="ARACHNE — web vulnerability scanner: XSS, SQLi, SSRF, LFI, RCE, CORS, CSRF + ML",
+    author="oliviaisntcringe",
+    url="https://github.com/oliviaisntcringe/security-scanner",
     packages=find_packages(exclude=["tests*", "training_data*"]),
     python_requires=">=3.9",
     install_requires=[
@@ -21,7 +23,7 @@ setup(
     ],
     entry_points={
         "console_scripts": [
-            "vulnscan=scanner.cli:main",
+            "arachne=scanner.cli:main",
         ],
     },
     include_package_data=True,

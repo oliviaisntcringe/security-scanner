@@ -1,70 +1,45 @@
 <div align="center">
 
-<pre>
- __   ___   _ _     _   _ ____   ____    _    _   _
- \ \ / / | | | |   | \ | / ___| / ___|  / \  | \ | |
-  \ V /| | | | |   |  \| \___ \| |     / _ \ |  \| |
-   | | | |_| | |___| |\  |___) | |___ / ___ \| |\  |
-   |_|  \___/|_____|_| \_|____/ \____/_/   \_\_| \_|
-</pre>
+```
+    _   ____      _   ____ _   _ _   _ _____
+   / \ |  _ \    / \ / ___| | | | \ | | ____|
+  / _ \| |_) |  / _ \ |   | |_| |  \| |  _|
+ / ___ \  _ <  / ___ \ |___|  _  | |\  | |___
+/_/   \_\_| \_\/_/   \_\____|_| |_|_| \_|_____|
+```
 
-# VulnScan
+### Web Vulnerability Framework
 
-**Web vulnerability scanner — CLI-first, ML-enhanced, Metasploit-style console**
+[![Python](https://img.shields.io/badge/Python-3.9%2B-3776ab?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
+[![Version](https://img.shields.io/badge/version-2.0.0-6366f1?style=for-the-badge)](https://github.com/oliviaisntcringe/security-scanner)
+[![License](https://img.shields.io/badge/license-MIT-22c55e?style=for-the-badge)](LICENSE)
 
-[![Python](https://img.shields.io/badge/Python-3.9%2B-3776ab?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
-[![Version](https://img.shields.io/badge/version-2.0.0-blue?style=flat-square)](https://github.com/oliviaisntcringe/security-scanner/releases)
-[![License: MIT](https://img.shields.io/badge/License-MIT-22c55e?style=flat-square)](LICENSE)
-[![Modules](https://img.shields.io/badge/modules-8-6366f1?style=flat-square)](#modules)
+[![Modules](https://img.shields.io/badge/modules-8-0ea5e9?style=flat-square)](#modules)
 [![ML](https://img.shields.io/badge/ML-sklearn-f59e0b?style=flat-square&logo=scikitlearn&logoColor=white)](#ml-detection)
-[![Telegram](https://img.shields.io/badge/Telegram-notifications-2CA5E0?style=flat-square&logo=telegram&logoColor=white)](#telegram)
-[![Flask](https://img.shields.io/badge/Web%20UI-Flask-000000?style=flat-square&logo=flask&logoColor=white)](#web-dashboard)
-[![Status](https://img.shields.io/badge/status-active-brightgreen?style=flat-square)]()
+[![Telegram](https://img.shields.io/badge/alerts-Telegram-2CA5E0?style=flat-square&logo=telegram)](https://telegram.org)
+[![CLI](https://img.shields.io/badge/console-Metasploit--style-ef4444?style=flat-square)](#console)
+[![Web UI](https://img.shields.io/badge/web%20UI-Flask-black?style=flat-square&logo=flask)](https://flask.palletsprojects.com)
+[![Async](https://img.shields.io/badge/async-aiohttp-009688?style=flat-square)](https://docs.aiohttp.org)
 
-> ⚠️ **For authorized security testing only.** Do not scan systems you don't own or have explicit written permission to test.
+> **For authorized security testing only.**  
+> Do not scan systems without explicit written permission.
 
 </div>
 
 ---
 
-## Overview
+## What is ARACHNE?
 
-VulnScan is a modular web vulnerability scanner with three interfaces:
+ARACHNE (*from Greek mythology — the weaver turned spider*) is a modular web vulnerability framework.  
+Like its namesake, it crawls the web and finds what hides in the dark corners of applications.
 
-| Interface | Command | Description |
-|-----------|---------|-------------|
-| **Interactive console** | `vulnscan console` | Metasploit-style REPL with tab completion |
-| **One-shot CLI** | `vulnscan scan <url>` | Scriptable, CI-friendly |
-| **Web dashboard** | `vulnscan web` | Dark real-time Flask UI |
+**Three ways to use it:**
 
----
-
-## Table of Contents
-
-- [Features](#features)
-- [Installation](#installation)
-- [Console (Metasploit-style)](#console-metasploit-style)
-- [CLI Usage](#cli-usage)
-- [Web Dashboard](#web-dashboard)
-- [Modules](#modules)
-- [ML Detection](#ml-detection)
-- [Telegram](#telegram)
-- [Configuration](#configuration)
-- [Project Structure](#project-structure)
-
----
-
-## Features
-
-- **8 scan modules** — XSS, SQLi, SSRF, LFI/RFI, RCE, CSRF, CORS, Open Redirect
-- **ML detection** — sklearn models trained on real vulnerability patterns
-- **Interactive console** — `use`, `set`, `show options`, `run`, `vulns`, `sessions` like msfconsole
-- **Smart deduplication** — findings grouped by `(base_url, type, parameter)`, no noise
-- **Rich output** — colored tables, severity badges, progress indicators
-- **3 report formats** — HTML, JSON, plain text
-- **Telegram alerts** — per-finding in real time or full report on scan complete
-- **Web dashboard** — real-time Socket.IO updates, charts, target management
-- **Zero hardcoded secrets** — all credentials via env vars or `~/.vulnscan.conf`
+| Interface | Command | Best for |
+|-----------|---------|----------|
+| 🖥️ **Interactive console** | `arachne console` | Manual testing, exploration |
+| ⚡ **One-shot CLI** | `arachne scan <url>` | Scripts, CI pipelines, bulk scans |
+| 🌐 **Web dashboard** | `arachne web` | Monitoring, visual reports, team use |
 
 ---
 
@@ -75,134 +50,144 @@ git clone https://github.com/oliviaisntcringe/security-scanner.git
 cd security-scanner
 
 python3 -m venv .venv
-source .venv/bin/activate        # Windows: .venv\Scripts\activate
+source .venv/bin/activate      # Windows: .venv\Scripts\activate
 
 pip install -e .
 ```
 
-Verify:
-
 ```bash
-vulnscan --help
+arachne --help
 ```
 
 ---
 
-## Console (Metasploit-style)
+## Console
+
+> Inspired by Metasploit — `use`, `set`, `show options`, `run`, `vulns`, `sessions`
 
 ```bash
-vulnscan console
+arachne console
 ```
 
 ```
- __   ___   _ _     _   _ ____   ____    _    _   _
- \ \ / / | | | |   | \ | / ___| / ___|  / \  | \ | |
-  ...
+    _   ____      _   ____ _   _ _   _ _____
+   / \ |  _ \    / \ / ___| | | | \ | | ____|
+  / _ \| |_) |  / _ \ |   | |_| |  \| |  _|
+ / ___ \  _ <  / ___ \ |___|  _  | |\  | |___
+/_/   \_\_| \_\/_/   \_\____|_| |_|_| \_|_____|
 
-vulnscan > use sqli
-vulnscan (scanner/sqli) > set TARGET https://example.com
+    v2.0  //  Web Vulnerability Framework  //  MIT License
+    Modules: 8  |  ML: enabled  |  Type 'help' for commands
+
+    == use scanner/all     — run all modules
+    == set TARGET <url>    — set your target
+    == run                 — start scanning
+
+
+arachne > use sqli
+arachne (scanner/sqli) > set TARGET https://example.com
 TARGET => https://example.com
-vulnscan (scanner/sqli) > set DEPTH 3
-DEPTH => 3
-vulnscan (scanner/sqli) > show options
+arachne (scanner/sqli) > set DEPTH 4
+DEPTH => 4
+arachne (scanner/sqli) > show options
 
 Module options (scanner/sqli):
 
-   Name       Current Setting     Required  Description
-   ----       ---------------     --------  -----------
-   TARGET     https://example     yes       Target URL to scan
-   DEPTH      3                   yes       Crawl depth
-   THREADS    5                   yes       Concurrent scan tasks
-   TIMEOUT    30                  yes       HTTP timeout (seconds)
-   MAX_URLS   50                  yes       Max URLs to test per target
-   PROXY                          no        HTTP proxy
-   FORMAT     html                yes       Report format: html / json / txt
-   ML         true                yes       Enable ML-based detection
-   TELEGRAM   false               no        Send report via Telegram
+   Name       Current Setting      Required  Description
+   ----       ---------------      --------  -----------
+   TARGET     https://example.com  yes       Target URL to scan
+   DEPTH      4                    yes       Crawl depth
+   THREADS    5                    yes       Concurrent scan tasks
+   TIMEOUT    30                   yes       HTTP timeout (seconds)
+   MAX_URLS   50                   yes       Max URLs to test per target
+   PROXY                           no        HTTP proxy URL
+   FORMAT     html                 yes       Report format: html / json / txt
+   ML         true                 yes       Enable ML-based detection
+   TELEGRAM   false                no        Send report via Telegram
 
-vulnscan (scanner/sqli) > run
+arachne (scanner/sqli) > run
 
 [*] Module  : scanner/sqli
 [*] Target  : https://example.com
-[*] Depth   : 3  Max-URLs: 50  Threads: 5
+[*] Modules : sqli
+[*] Depth   : 4  Max-URLs: 50  Threads: 5
+[*] ML      : enabled
 
-🔴 SQLI  param=id  url=https://example.com/item?id=1
+🔴 SQLI  param=id  url=https://example.com/product?id=1
    payload → ' AND SLEEP(4)--
 
-[+] Scan complete — 1 finding(s) in 12.4s
+[+] Scan complete — 1 finding(s) in 11.3s
+[*] Report  → reports/arachne_20260521_120000.html  (session #1)
 
-[*] Report  → /path/to/reports/vulnscan_20260521_120000.html  (session #1)
+arachne (scanner/sqli) > vulns
+arachne (scanner/sqli) > sessions
+arachne (scanner/sqli) > report html
+arachne (scanner/sqli) > back
+arachne >
 ```
 
 ### Console commands
 
 | Command | Description |
 |---------|-------------|
-| `use <module\|all>` | Select scan module |
-| `set <KEY> <value>` | Set an option (tab-completable) |
+| `use <module\|all>` | Select scan module (tab-completable) |
+| `set <KEY> <value>` | Set an option |
 | `unset <KEY>` | Reset to default |
-| `show options` | Display current options table |
-| `show modules` | List all available modules |
-| `run` / `exploit` | Start the scan |
-| `back` | Deselect current module |
-| `vulns` | Show all vulnerabilities from current session |
-| `targets` | List scanned targets |
-| `sessions` | Show completed scan history |
-| `report [html\|json\|txt]` | Generate report from all sessions |
-| `help` / `?` | Show help panel |
-| `exit` / `quit` | Exit console |
+| `show options` | Current options table |
+| `show modules` | List all modules |
+| `run` / `exploit` | Start scan |
+| `back` | Return to root context |
+| `vulns` | All findings from current session |
+| `targets` | Scanned hosts + finding counts |
+| `sessions` | Scan history |
+| `report [html\|json\|txt]` | Generate report |
+| `help` / `?` | Help panel |
+| `exit` / `quit` | Exit |
 
 ---
 
-## CLI Usage
-
-### Basic
+## CLI
 
 ```bash
-# Scan with all modules, HTML report
-vulnscan scan https://target.com
+# All modules, auto-named HTML report
+arachne scan https://target.com
 
 # Specific modules
-vulnscan scan https://target.com -m xss,sqli,lfi
+arachne scan https://target.com -m xss,sqli,lfi
 
-# Multiple targets from file
-vulnscan scan -f targets.txt --format json -o results.json
+# From file, JSON output
+arachne scan -f targets.txt --format json -o results.json
 
-# Verbose + proxy (e.g. Burp Suite)
-vulnscan scan https://target.com -v --proxy http://127.0.0.1:8080
+# With proxy (Burp Suite etc.)
+arachne scan https://target.com --proxy http://127.0.0.1:8080 -v
+
+# Telegram alerts per finding + final report
+arachne scan https://target.com --notify-each --telegram
+
+# View / open reports
+arachne report --list
+arachne report --last
 ```
 
-### All options
+### All scan flags
 
 ```
-vulnscan scan [OPTIONS] TARGET...
+arachne scan [OPTIONS] TARGET...
 
   -f, --file PATH            File with target URLs (one per line)
-  -m, --modules TEXT         Modules to run [default: all]
-                             Available: xss, sqli, ssrf, lfi, rce,
-                                        csrf, cors, open_redirect
+  -m, --modules TEXT         Modules [default: all]
+                             Options: xss sqli ssrf lfi rce csrf cors open_redirect
   -d, --depth INT            Crawl depth  [default: 3]
   -u, --max-urls INT         Max URLs per target  [default: 50]
   -T, --threads INT          Concurrent tasks  [default: 5]
-  -t, --timeout INT          HTTP timeout in seconds  [default: 30]
-  --proxy TEXT               HTTP proxy URL
-  --no-ml                    Disable ML detection
+  -t, --timeout INT          HTTP timeout (s)  [default: 30]
+      --proxy TEXT           HTTP proxy URL
+      --no-ml                Disable ML detection
   -o, --output PATH          Output file (auto-named if omitted)
-  --format [html|json|txt]   Report format  [default: html]
-  --telegram                 Send final report via Telegram
-  --notify-each              Telegram alert per finding (real-time)
+      --format [html|json|txt]  [default: html]
+      --telegram             Send final report via Telegram
+      --notify-each          Telegram alert per finding
   -v, --verbose              Verbose output
-```
-
-### Report & Config
-
-```bash
-vulnscan report --list          # list all saved reports
-vulnscan report --last          # open latest report in browser
-
-vulnscan config                 # show current config
-vulnscan config --set TELEGRAM_TOKEN=xxx
-vulnscan config --set TELEGRAM_CHAT_ID=xxx
 ```
 
 ---
@@ -210,104 +195,101 @@ vulnscan config --set TELEGRAM_CHAT_ID=xxx
 ## Web Dashboard
 
 ```bash
-vulnscan web                            # http://127.0.0.1:5001
-vulnscan web --host 0.0.0.0 --port 8080
+arachne web                          # http://127.0.0.1:5001
+arachne web --host 0.0.0.0 --port 8080
 ```
 
-### Dashboard sections
+| Section | Content |
+|---------|---------|
+| **Dashboard** | Stats cards · Severity doughnut · Type bar chart · Recent findings · Live log |
+| **New Scan** | Full form with all options · Progress bar · Real-time Socket.IO output |
+| **Vulnerabilities** | Filterable table — Critical / High / Medium / Low |
+| **Targets** | All scanned hosts · Finding counts · Rescan button |
+| **Reports** | File list · Size · Date · Download link |
+| **Settings** | Telegram credentials · Scan defaults · Toggle switches |
 
-| Section | Description |
-|---------|-------------|
-| **Dashboard** | Stats cards, severity doughnut chart, vuln-type bar chart, recent findings, live log |
-| **New Scan** | Full scan form with all options, real-time progress bar and live output |
-| **Vulnerabilities** | Filterable table by severity (Critical / High / Medium / Low) |
-| **Targets** | All scanned hosts, finding count, Rescan button |
-| **Reports** | Generated report files with download links |
-| **Settings** | Telegram credentials, scan defaults, toggle switches |
-
-All findings stream to the browser in real time via Socket.IO.
+All findings stream to the browser in real time via **Socket.IO**.
 
 ---
 
 ## Modules
 
-| Name | Severity | Detects |
-|------|----------|---------|
-| `xss` | 🟠 High | Reflected XSS in URL params and forms; DOM sink hints |
-| `sqli` | 🔴 Critical | Error-based, time-based, boolean-based SQL injection |
-| `ssrf` | 🟠 High | Internal service access, AWS / GCP metadata endpoints |
-| `lfi` | 🔴 Critical | Local File Inclusion, Remote File Inclusion, path traversal |
-| `rce` | 🔴 Critical | OS command injection — output-based and time-based |
-| `csrf` | 🟡 Medium | Missing anti-CSRF tokens, insecure cookie flags |
-| `cors` | 🟡 Medium | Origin reflection, wildcard + credentials misconfiguration |
+| Module | Severity | Detection method |
+|--------|----------|-----------------|
+| `xss` | 🟠 High | Payload reflection in URL params and forms |
+| `sqli` | 🔴 Critical | Error-based · time-based · boolean-based |
+| `ssrf` | 🟠 High | Internal hosts · AWS · GCP · Azure metadata |
+| `lfi` | 🔴 Critical | Path traversal · PHP wrappers · LFI/RFI |
+| `rce` | 🔴 Critical | Command output detection · sleep timing |
+| `csrf` | 🟡 Medium | Missing tokens · insecure cookie flags |
+| `cors` | 🟡 Medium | Origin reflection · wildcard + credentials |
 | `open_redirect` | 🟡 Medium | Unvalidated redirect parameters |
 
 ---
 
 ## ML Detection
 
-Pre-trained **sklearn** models (`models/*.pkl`) detect vulnerability patterns from page structure, response headers, and parameter behaviour — catching issues that payload-based scanners miss.
+Pre-trained **sklearn** classifiers (`models/*.pkl`) analyse page structure,  
+response headers and parameter behaviour to find vulnerabilities that  
+payload-based scanning misses.
+
+| Model | Approx. accuracy |
+|-------|-----------------|
+| XSS   | 85 % |
+| SQLi  | 82 % |
+| LFI   | 80 % |
+| CSRF  | 78 % |
+| RCE   | 77 % |
+| SSRF  | 75 % |
 
 ```bash
-# Disable ML (faster scans)
-vulnscan scan https://target.com --no-ml
-
-# Retrain models on fresh data
+# Retrain on fresh data
 python generate_training_data.py
 python train_ml_models.py
+
+# Disable ML (faster)
+arachne scan https://target.com --no-ml
 ```
-
-Detection accuracy (pre-trained models):
-
-| Model | Accuracy |
-|-------|----------|
-| XSS   | ~85 % |
-| SQLi  | ~82 % |
-| CSRF  | ~78 % |
-| SSRF  | ~75 % |
-| LFI   | ~80 % |
-| RCE   | ~77 % |
 
 ---
 
 ## Telegram
 
 ```bash
-# Store credentials (written to ~/.vulnscan.conf)
-vulnscan config --set TELEGRAM_TOKEN=7xxxxxxxxx:AAH...
-vulnscan config --set TELEGRAM_CHAT_ID=123456789
+# Store once
+arachne config --set TELEGRAM_TOKEN=7xxxxxxxxx:AAH...
+arachne config --set TELEGRAM_CHAT_ID=123456789
 
-# Or export as env vars
+# Or env vars
 export TELEGRAM_TOKEN=...
 export TELEGRAM_CHAT_ID=...
 
-# Send full report at end of scan
-vulnscan scan https://target.com --telegram
-
-# Alert on every finding in real time
-vulnscan scan https://target.com --notify-each
+# Use
+arachne scan https://target.com --telegram        # report on completion
+arachne scan https://target.com --notify-each     # alert per finding
 ```
 
 ---
 
 ## Configuration
 
-All values read from **environment variables** first, then `~/.vulnscan.conf`, then built-in defaults. No secrets are ever committed to the repository.
+Values are read in order: **env var → `~/.arachne.conf` → built-in default**.  
+No secrets are stored in the repository.
+
+```bash
+arachne config                          # show current config
+arachne config --set KEY=VALUE          # write to ~/.arachne.conf
+```
 
 | Key | Default | Description |
 |-----|---------|-------------|
 | `TELEGRAM_TOKEN` | — | Telegram bot token |
-| `TELEGRAM_CHAT_ID` | — | Telegram chat / channel ID |
-| `REQUEST_TIMEOUT` | `30` | HTTP timeout in seconds |
-| `MAX_CRAWL_DEPTH` | `3` | Default crawl depth |
+| `TELEGRAM_CHAT_ID` | — | Telegram chat ID |
+| `REQUEST_TIMEOUT` | `30` | HTTP timeout (s) |
+| `MAX_CRAWL_DEPTH` | `3` | Crawl depth |
 | `MAX_URLS` | `50` | Max URLs per target |
 | `CONCURRENT_TASKS` | `5` | Parallel scan tasks |
-| `ML_CONFIDENCE_THRESHOLD` | `0.50` | Minimum ML confidence to report |
-
-```bash
-# View all current values
-vulnscan config
-```
+| `ML_CONFIDENCE_THRESHOLD` | `0.50` | Min confidence for ML findings |
 
 ---
 
@@ -315,14 +297,17 @@ vulnscan config
 
 ```
 security-scanner/
-├── scanner/                    # CLI package
-│   ├── cli.py                  # Click entry point
-│   ├── console.py              # Metasploit-style interactive console
-│   ├── config.py               # Env-var / file based config
+│
+├── scanner/                    # Core package
+│   ├── cli.py                  # Click CLI entry point  (arachne command)
+│   ├── console.py              # Interactive Metasploit-style REPL
+│   ├── config.py               # Config: env → ~/.arachne.conf → defaults
+│   │
 │   ├── core/
-│   │   └── orchestrator.py     # Crawl + scan coordinator
+│   │   └── orchestrator.py    # Crawl → scan → ML coordinator
+│   │
 │   ├── scanners/
-│   │   ├── base.py             # Async web crawler
+│   │   ├── base.py            # Async web crawler
 │   │   ├── xss.py
 │   │   ├── sqli.py
 │   │   ├── ssrf.py
@@ -331,17 +316,19 @@ security-scanner/
 │   │   ├── csrf.py
 │   │   ├── cors.py
 │   │   └── open_redirect.py
+│   │
 │   ├── ml/
-│   │   └── detector.py         # ML wrapper (sklearn)
+│   │   └── detector.py        # sklearn model wrapper
+│   │
 │   └── utils/
-│       ├── http.py             # Async HTTP client
-│       ├── output.py           # Rich terminal output
-│       ├── report.py           # HTML / JSON / txt reports
-│       └── notify.py           # Telegram notifications
+│       ├── http.py            # Async HTTP client
+│       ├── output.py          # Rich terminal output
+│       ├── report.py          # HTML / JSON / txt report generator
+│       └── notify.py          # Telegram notifications
 │
 ├── app/                        # Flask web dashboard
-│   ├── routes.py               # API + page routes
-│   ├── templates/index.html    # Single-page dashboard
+│   ├── routes.py
+│   ├── templates/index.html   # Single-page dark UI
 │   └── static/js/dashboard.js # Socket.IO + Chart.js frontend
 │
 ├── models/                     # Trained ML models (.pkl)
@@ -349,7 +336,7 @@ security-scanner/
 ├── training_data/              # ML training datasets
 ├── payloads/                   # Fuzzing payload lists
 │
-├── setup.py                    # pip install -e .
+├── setup.py
 └── requirements.txt
 ```
 
@@ -357,13 +344,12 @@ security-scanner/
 
 ## Contributing
 
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/my-feature`
-3. Commit your changes
-4. Open a Pull Request
+1. Fork → feature branch → PR
+2. One module per scanner file
+3. All scan functions: `async def scan(session, url, forms) -> List[Dict]`
 
 ---
 
 ## License
 
-[MIT](LICENSE) — for **authorized** security testing only.
+[MIT](LICENSE)

@@ -2,10 +2,10 @@
 VulnScan CLI — entry point.
 
 Usage:
-    vulnscan scan <target> [options]
-    vulnscan scan -f targets.txt [options]
-    vulnscan report --last
-    vulnscan config
+    arachne scan <target> [options]
+    arachne scan -f targets.txt [options]
+    arachne report --last
+    arachne config
 """
 from __future__ import annotations
 
@@ -121,7 +121,7 @@ def scan(
         target_list += [l.strip() for l in lines if l.strip() and not l.startswith("#")]
 
     if not target_list:
-        error("No targets specified. Use vulnscan scan <url> or -f <file>.")
+        error("No targets specified. Use arachne scan <url> or -f <file>.")
         sys.exit(1)
 
     # Telegram sanity check
@@ -207,11 +207,11 @@ def scan(
 @click.option("--list",  "list_reports", is_flag=True, help="List all reports.")
 def report(last: bool, list_reports: bool) -> None:
     """View generated reports."""
-    all_reports = sorted(REPORTS_DIR.glob("vulnscan_*"), key=lambda p: p.stat().st_mtime, reverse=True)
+    all_reports = sorted(REPORTS_DIR.glob("arachne_*"), key=lambda p: p.stat().st_mtime, reverse=True)
 
     if list_reports or (not last and not list_reports):
         if not all_reports:
-            warn("No reports found yet. Run 'vulnscan scan' first.")
+            warn("No reports found yet. Run 'arachne scan' first.")
             return
         from rich.table import Table
         from rich import box as rbox
@@ -247,11 +247,11 @@ def report(last: bool, list_reports: bool) -> None:
 
 @main.command("config")
 @click.option("--set", "kv", metavar="KEY=VALUE", multiple=True,
-              help="Set a config value in ~/.vulnscan.conf")
+              help="Set a config value in ~/.arachne.conf")
 def config_cmd(kv: tuple) -> None:
     """Show or set configuration values."""
     import configparser, os
-    conf_path = Path.home() / ".vulnscan.conf"
+    conf_path = Path.home() / ".arachne.conf"
     conf = configparser.ConfigParser()
     if conf_path.exists():
         conf.read(conf_path)
@@ -288,7 +288,7 @@ def config_cmd(kv: tuple) -> None:
             _show_key(t, attr, str(val), "env/conf/default")
         console.print(t)
         info(f"Config file: {conf_path}")
-        info("Set values with: vulnscan config --set KEY=VALUE")
+        info("Set values with: arachne config --set KEY=VALUE")
         info("Or export env vars: export TELEGRAM_TOKEN=xxx")
 
 

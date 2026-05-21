@@ -21,7 +21,7 @@ for _d in [RESULTS_DIR, REPORTS_DIR, MODELS_DIR, PAYLOADS_DIR, EXPLOITS_DIR, LOG
 
 # ── Config file (~/.vulnscan.conf) ─────────────────────────────────────────────
 _conf = configparser.ConfigParser()
-_conf_path = Path.home() / ".vulnscan.conf"
+_conf_path = Path.home() / ".arachne.conf"
 if _conf_path.exists():
     _conf.read(_conf_path)
 

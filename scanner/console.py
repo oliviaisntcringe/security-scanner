@@ -41,14 +41,14 @@ PROMPT_STYLE = Style.from_dict({
 
 # ── ASCII art banner ───────────────────────────────────────────────────────────
 BANNER = r"""
- __   ___   _ _     _   _ ____   ____    _    _   _
- \ \ / / | | | |   | \ | / ___| / ___|  / \  | \ | |
-  \ V /| | | | |   |  \| \___ \| |     / _ \ |  \| |
-   | | | |_| | |___| |\  |___) | |___ / ___ \| |\  |
-   |_|  \___/|_____|_| \_|____/ \____/_/   \_\_| \_|
+    _   ____      _   ____ _   _ _   _ _____
+   / \ |  _ \    / \ / ___| | | | \ | | ____|
+  / _ \| |_) |  / _ \ |   | |_| |  \| |  _|
+ / ___ \  _ <  / ___ \ |___|  _  | |\  | |___
+/_/   \_\_| \_\/_/   \_\____|_| |_|_| \_|_____|
 """
 
-VERSION_LINE = "       v2.0  //  Web Vulnerability Scanner  //  MIT License"
+VERSION_LINE = "    v2.0  //  Web Vulnerability Framework  //  MIT License"
 
 STATS_LINE = (
     f"    Modules: {len(MODULES)}  |  "
@@ -82,7 +82,7 @@ class VulnScanConsole:
         self.all_vulns: List[Dict[str, Any]] = []  # all findings ever
         self.targets:   List[str] = []             # known targets
 
-        hist_path = Path.home() / ".vulnscan_history"
+        hist_path = Path.home() / ".arachne_history"
         self.session = PromptSession(
             history=FileHistory(str(hist_path)),
             style=PROMPT_STYLE,
@@ -113,13 +113,13 @@ class VulnScanConsole:
     def _prompt_text(self) -> HTML:
         if self.module:
             return HTML(
-                f"<prompt.base>vulnscan</prompt.base>"
+                f"<prompt.base>arachne</prompt.base>"
                 f"<prompt.arrow> (</prompt.arrow>"
                 f"<prompt.module>scanner/{self.module}</prompt.module>"
                 f"<prompt.arrow>)</prompt.arrow>"
                 f"<prompt.arrow> &gt; </prompt.arrow>"
             )
-        return HTML("<prompt.base>vulnscan</prompt.base><prompt.arrow> &gt; </prompt.arrow>")
+        return HTML("<prompt.base>arachne</prompt.base><prompt.arrow> &gt; </prompt.arrow>")
 
     # ── Main loop ──────────────────────────────────────────────────────────────
 
@@ -472,13 +472,13 @@ class VulnScanConsole:
   [bold]report[/bold] [html|json|txt]   Generate report from all sessions
 
 [bold cyan]Workflow example[/bold cyan]
-  vulnscan > use sqli
-  vulnscan (scanner/sqli) > set TARGET https://example.com
-  vulnscan (scanner/sqli) > set DEPTH 3
-  vulnscan (scanner/sqli) > show options
-  vulnscan (scanner/sqli) > run
-  vulnscan (scanner/sqli) > vulns
-  vulnscan (scanner/sqli) > report html
+  arachne > use sqli
+  arachne (scanner/sqli) > set TARGET https://example.com
+  arachne (scanner/sqli) > set DEPTH 3
+  arachne (scanner/sqli) > show options
+  arachne (scanner/sqli) > run
+  arachne (scanner/sqli) > vulns
+  arachne (scanner/sqli) > report html
 """
         console.print(Panel(help_text, title="Help", border_style="cyan", expand=False))
 
@@ -505,5 +505,5 @@ class VulnScanConsole:
 
 
 def launch() -> None:
-    """Entry point for 'vulnscan console' command."""
+    """Entry point for 'arachne console' command."""
     VulnScanConsole().run()
