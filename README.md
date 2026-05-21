@@ -1,6 +1,157 @@
-# Security Scanner
+# VulnScan
 
 <div align="center">
+
+[![Python](https://img.shields.io/badge/Python-3.9%2B-3776ab?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
+[![Status](https://img.shields.io/badge/Status-v2.0-brightgreen?style=flat-square)]()
+
+**Web vulnerability scanner — CLI-first, ML-enhanced.**
+
+> For authorized security testing only.
+
+</div>
+
+---
+
+## Features
+
+| Module | Detects |
+|--------|---------|
+| `xss` | Reflected XSS (URL params + forms), DOM sink hints |
+| `sqli` | Error-based, time-based, boolean-based SQL injection |
+| `ssrf` | Internal service access, AWS/GCP metadata endpoints |
+| `lfi` | Local/Remote File Inclusion, path traversal |
+| `rce` | OS command injection (output + time-based) |
+| `csrf` | Missing tokens, insecure cookie flags |
+| `cors` | Origin reflection, wildcard + credentials misconfigs |
+| `open_redirect` | Unvalidated redirects in URL parameters |
+| `ml` | Sklearn-based anomaly detection across all vuln types |
+
+---
+
+## Installation
+
+```bash
+git clone https://github.com/oliviaisntcringe/security-scanner.git
+cd security-scanner
+
+python3 -m venv .venv
+source .venv/bin/activate   # Windows: .venv\Scripts\activate
+pip install -e .
+```
+
+---
+
+## Quick start
+
+```bash
+# Scan a single target (all modules, HTML report)
+vulnscan scan https://example.com
+
+# Specific modules only
+vulnscan scan https://example.com -m xss,sqli,lfi
+
+# Multiple targets from file
+vulnscan scan -f targets.txt --format json -o results.json
+
+# Real-time Telegram alerts + final report
+vulnscan scan https://example.com --notify-each --telegram
+
+# With proxy, increased depth
+vulnscan scan https://example.com -d 4 -u 100 --proxy http://127.0.0.1:8080
+
+# View reports
+vulnscan report --list
+vulnscan report --last
+```
+
+---
+
+## Options
+
+```
+vulnscan scan [OPTIONS] TARGET...
+
+  -f, --file PATH            File with target URLs (one per line)
+  -m, --modules TEXT         xss,sqli,ssrf,lfi,rce,csrf,cors,open_redirect  [default: all]
+  -d, --depth INT            Crawl depth  [default: 3]
+  -u, --max-urls INT         Max URLs per target  [default: 50]
+  -T, --threads INT          Concurrent tasks  [default: 5]
+  -t, --timeout INT          HTTP timeout (s)  [default: 30]
+  --proxy TEXT               HTTP proxy URL
+  --no-ml                    Disable ML detection
+  -o, --output PATH          Output file (auto-named if omitted)
+  --format [html|json|txt]   Report format  [default: html]
+  --telegram                 Send final report via Telegram
+  --notify-each              Telegram alert per finding (real-time)
+  -v, --verbose              Verbose output
+```
+
+---
+
+## Configuration
+
+```bash
+# Set once — stored in ~/.vulnscan.conf
+vulnscan config --set TELEGRAM_TOKEN=your_bot_token
+vulnscan config --set TELEGRAM_CHAT_ID=your_chat_id
+
+# Or use env vars
+export TELEGRAM_TOKEN=xxx
+export TELEGRAM_CHAT_ID=xxx
+
+vulnscan config        # show current config
+```
+
+---
+
+## Web dashboard (optional)
+
+```bash
+vulnscan web                          # http://127.0.0.1:5001
+vulnscan web --host 0.0.0.0 --port 8080
+```
+
+---
+
+## ML models
+
+Pre-trained sklearn models live in `models/`. Retrain:
+
+```bash
+python generate_training_data.py
+python train_ml_models.py
+```
+
+---
+
+## Structure
+
+```
+security-scanner/
+├── scanner/            # CLI package
+│   ├── cli.py          # Click entry point
+│   ├── config.py       # Env-based config
+│   ├── core/orchestrator.py
+│   ├── scanners/       # xss, sqli, ssrf, lfi, rce, csrf, cors, open_redirect
+│   ├── ml/detector.py
+│   └── utils/          # http, output (Rich), report, notify (Telegram)
+├── app/                # Legacy Flask web UI
+├── models/             # Trained ML models (.pkl)
+├── exploits/           # Exploit templates
+└── setup.py
+```
+
+---
+
+## License
+
+MIT — authorized security testing only.
+
+---
+
+<!-- legacy badges below -->
 
 [![Python Badge](https://img.shields.io/badge/Python-3.8%2B-3776ab?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
 [![Security Status](https://img.shields.io/badge/Security-Advanced-brightgreen?style=flat-square)](https://github.com/oliviaisntcringe/security-scanner)
