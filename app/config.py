@@ -1,28 +1,24 @@
 import os
 
-# They're always listening. Hide in plain sight.
 HOST = '0.0.0.0'
-PORT = 5001  # Standard ports are monitored. Stay off their radar.
-DEBUG = True
+PORT = 5001
+DEBUG = False
 SECRET_KEY = os.environ.get('SECRET_KEY', 'CHANGE_ME_IN_PRODUCTION')
 
-# Time is a construct. But servers need rhythm.
-SCAN_INTERVAL = 3600  # One hour. Predictable, but necessary evil.
+SCAN_INTERVAL = 3600
 MAX_CRAWL_DEPTH = 5
 MAX_URLS_PER_SCAN = 30
-CONCURRENT_SCANS = 5  # Any more would draw attention
-REQUEST_TIMEOUT = 30  # Patience is a virtue they don't possess
-RETRY_COUNT = 3  # Three chances. That's all they get.
-RETRY_DELAY = 5  # Make them wait. Control the tempo.
+CONCURRENT_SCANS = 5
+REQUEST_TIMEOUT = 30
+RETRY_COUNT = 3
+RETRY_DELAY = 5
 
-# Sacrificial lambs. Practice targets with known flaws.
 TEST_TARGETS = [
     'https://testphp.vulnweb.com',
     'https://demo.testfire.net',
     'https://juice-shop.herokuapp.com'
 ]
 
-# Digital breadcrumbs. Where we store the evidence of their failures.
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 RESULTS_DIR = os.path.join(BASE_DIR, 'results')
 PAYLOADS_DIR = os.path.join(BASE_DIR, 'app', 'payloads')
@@ -31,14 +27,12 @@ REPORTS_DIR = os.path.join(BASE_DIR, 'reports')
 ML_MODELS_PATH = os.path.join(BASE_DIR, "models")
 FUZZING_PAYLOADS_PATH = os.path.join(BASE_DIR, 'app', 'payloads', 'fuzzing')
 EXPLOITS_PATH = os.path.join(BASE_DIR, "exploits")
-LOGS_DIR = os.path.join(BASE_DIR, "logs")  # Where we record their mistakes
+LOGS_DIR = os.path.join(BASE_DIR, "logs")
 
-# Telegram - communication over corporate channels. They don't monitor these... yet.
-# Tokens are just digital keys. So easy to steal.
-TELEGRAM_TOKEN = "7695047242:AAH_FLMzTJL7cM2_uJCM8nWOTjltfouNx5Q"  # Set directly from telegram_setup.sh
-TELEGRAM_CHAT_ID = "7168936119"  # Set directly from telegram_setup.sh
-# Redundancy. Always have a backup key.
-TELEGRAM_BOT_TOKEN = "7695047242:AAH_FLMzTJL7cM2_uJCM8nWOTjltfouNx5Q"  # Set directly from telegram_setup.sh
+# Credentials from environment only — never hardcode secrets
+TELEGRAM_TOKEN    = os.environ.get('TELEGRAM_TOKEN', '')
+TELEGRAM_CHAT_ID  = os.environ.get('TELEGRAM_CHAT_ID', '')
+TELEGRAM_BOT_TOKEN = TELEGRAM_TOKEN
 SEND_TELEGRAM_REPORTS = bool(TELEGRAM_TOKEN and TELEGRAM_CHAT_ID)
 
 # Create the necessary structure. Build the digital labyrinth.
