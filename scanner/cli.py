@@ -320,5 +320,14 @@ def web_cmd(host: str, port: int, debug: bool) -> None:
         error("Install with: pip install flask flask-socketio")
 
 
+# ── console command ────────────────────────────────────────────────────────────
+
+@main.command("console")
+def console_cmd() -> None:
+    """Launch the interactive Metasploit-style console."""
+    from scanner.console import launch
+    launch()
+
+
 if __name__ == "__main__":
     main()

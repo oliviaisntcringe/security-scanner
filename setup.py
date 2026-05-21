@@ -11,6 +11,7 @@ setup(
         "beautifulsoup4>=4.12",
         "click>=8.1",
         "rich>=13.0",
+        "prompt_toolkit>=3.0",
         "dnspython>=2.4",
         "requests>=2.31",
         "fake-useragent>=1.1",
